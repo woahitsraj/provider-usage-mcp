@@ -62,6 +62,7 @@ export function readProviders(now = Date.now()) {
         return [{
           providerInstanceId: id,
           plan: d.auth?.label,
+          models: (d.models ?? []).map((m: { slug: string }) => m.slug) as string[],
           stale: !checkedAt || now - Date.parse(checkedAt) > STALE_MS,
           checkedAt,
           windows: windows.map((w) => scoreWindow(w, [...(credits["*"] ?? []), ...(credits[w.id] ?? [])], now)),
@@ -78,7 +79,7 @@ export function pick(tier: Tier, exclude: string[] = [], now = Date.now()) {
   return cfg.tiers[tier]
     .flatMap((c) => {
       const p = providers.get(c.providerInstanceId);
-      if (!p || exclude.includes(c.providerInstanceId) || c.quality < (cfg.minQuality ?? 0)) return [];
+      if (!p || !p.models.includes(c.model) || exclude.includes(c.providerInstanceId) || c.quality < (cfg.minQuality ?? 0)) return [];
       const ws = p.windows.filter((w) => !c.windows || c.windows.includes(w.id));
       const base = ws.length ? Math.min(...ws.map((w) => w.weight)) : 1;
       const weight = p.stale ? Math.min(base, 1) * 0.75 : base;
@@ -116,7 +117,7 @@ server.registerTool(
 server.registerTool(
   "provider_usage",
   { description: "Usage, even-pace ratio, hours to reset, and routing weight for each enabled T3 Code provider subscription.", inputSchema: {} },
-  async () => json(readProviders()),
+  async () => json(readProviders().map(({ models, ...p }) => p)),
 );
 
 if (import.meta.main) await server.connect(new StdioServerTransport());
