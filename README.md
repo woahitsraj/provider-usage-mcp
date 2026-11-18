@@ -22,7 +22,7 @@ The score is `quality × preference × weight`.
 - **preference** is your own multiplier by model id prefix.
 - **weight** compares the quota left with the time left until reset, using the lowest weight of the model's usage windows. Above 1 means that quota will expire unused. Below 1 means the subscription is ahead of even pace.
 
-New models: a model that a provider in `windows` offers, that `models.json` does not list, and that Artificial Analysis released in the last 60 days joins every tier at medium effort. Add it to `tiers` to choose its tiers and effort.
+New models: a model that a provider in `windows` offers, that `models.json` does not list, and that Artificial Analysis says was released after `_meta.updatedAt` joins every tier at medium effort. To choose its tiers and effort, add it to `tiers` and update `_meta.updatedAt`.
 
 ## Setup
 

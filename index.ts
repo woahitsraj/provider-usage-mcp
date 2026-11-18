@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, statSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import { z } from "zod";
@@ -14,7 +14,6 @@ const KIND_MINS: Record<string, number> = { session: 300, daily: 1440, weekly: 1
 const STALE_MS = 2 * 3600_000;
 const MAX_WEIGHT = 2;
 const MAX_RESULTS = 8;
-const NEW_MODEL_DAYS = 60;
 const EFFORT_KEYS = ["effort", "reasoningEffort", "reasoning_effort"];
 
 type Window = { id: string; kind: string; label: string; usedPercent: number; resetsAt?: string; windowDurationMins?: number };
@@ -23,6 +22,7 @@ type Tier = "light" | "standard" | "deep";
 // expiry dates of free limit resets, by provider then window id ("*" = every window)
 type Credits = Record<string, Record<string, string[]>>;
 type Config = {
+  _meta?: { updatedAt?: string };
   minQuality?: number;
   preference?: Record<string, number>;
   resetCredits?: Credits;
@@ -40,7 +40,13 @@ const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n
 const round = (n: number) => Math.round(n * 100) / 100;
 const readJson = (f: string) => JSON.parse(readFileSync(f, "utf8"));
 const loadConfig = (): Config => ({ ...readJson(CONFIG), ...(existsSync(LOCAL) && readJson(LOCAL)) });
-const loadBench = (): Record<string, Bench> => (existsSync(BENCH) ? readJson(BENCH).models : {});
+const loadBench = (): Record<string, Bench> => {
+  try {
+    return readJson(BENCH).models ?? {};
+  } catch {
+    return {};
+  }
+};
 
 // Artificial Analysis data is per user (their key, their cache), never committed
 export async function refreshBenchmarks(maxAgeMs = 86400_000) {
@@ -58,7 +64,10 @@ export async function refreshBenchmarks(maxAgeMs = 86400_000) {
     more = body.pagination?.has_more;
   }
   mkdirSync(dirname(BENCH), { recursive: true });
-  writeFileSync(BENCH, JSON.stringify({ fetchedAt: new Date().toISOString(), models }));
+  // several MCP servers and the hourly job share this file, so never leave it half written
+  const tmp = `${BENCH}.${process.pid}.tmp`;
+  writeFileSync(tmp, JSON.stringify({ fetchedAt: new Date().toISOString(), models }));
+  renameSync(tmp, BENCH);
   return true;
 }
 
@@ -66,7 +75,7 @@ export async function refreshBenchmarks(maxAgeMs = 86400_000) {
 const benchFor = (bench: Record<string, Bench>, model: string, options: Record<string, unknown>) => {
   const base = model.toLowerCase().replace(/\./g, "-");
   const effort = EFFORT_KEYS.map((k) => options[k]).find(Boolean);
-  return bench[`${base}-${effort}`] ?? bench[base];
+  return !effort || effort === "max" ? bench[base] : bench[`${base}-${effort}`];
 };
 
 export function benchQuality(tier: Tier, b: Bench, iiMax: number) {
@@ -141,11 +150,12 @@ export function pick(tier: Tier, exclude: string[] = [], now = Date.now()) {
   const iiMax = Math.max(1, ...Object.values(bench).map((b) => b.ii));
   const listed = cfg.tiers[tier];
   const known = new Set(Object.values(cfg.tiers).flat().map((c) => c.model));
+  const curatedAt = Date.parse(cfg._meta?.updatedAt ?? "") || 0;
   const isNew = (slug: string) => {
     const released = benchFor(bench, slug, {})?.released;
-    return !known.has(slug) && !!released && now - Date.parse(released) < NEW_MODEL_DAYS * 86400_000;
+    return !known.has(slug) && !!released && Date.parse(released) > curatedAt;
   };
-  // recently released models that models.json does not list yet join every tier at medium effort
+  // models released after models.json was last curated join every tier at medium effort
   const discovered: Candidate[] = Object.entries(cfg.windows ?? {}).flatMap(([id, rules]) =>
     (providers.get(id)?.models ?? [])
       .filter((m) => isNew(m.slug))
