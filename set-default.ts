@@ -2,7 +2,7 @@
 import { readFileSync, renameSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { pick } from "./index.ts";
+import { pick, refreshBenchmarks } from "./index.ts";
 
 const SETTINGS =
 	process.env.T3_SETTINGS ?? join(homedir(), ".t3/userdata/settings.json");
@@ -20,6 +20,12 @@ const toSelection = ({ target }: { target: Target }) => ({
 		})),
 	}),
 });
+
+try {
+	if (await refreshBenchmarks()) console.log(`${new Date().toISOString()} benchmarks refreshed`);
+} catch (e) {
+	console.log(`${new Date().toISOString()} benchmark refresh failed: ${(e as Error).message}`);
+}
 
 const ranked = pick("standard");
 const top = ranked[0];
