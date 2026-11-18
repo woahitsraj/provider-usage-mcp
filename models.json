@@ -15,6 +15,7 @@
     "notes": "Final quality = average of the Artificial Analysis benchmark score (when there is a key and a match) and X sentiment (models.local.json `sentiment`, else `quality` here). tiers list models with a chosen effort; other models in the caches of providers under `windows` join at medium effort when Artificial Analysis released them after updatedAt. quality = curated sentiment per tier (0-1). Personal settings (preference = taste by model id prefix, resetCredits = expiry of free limit resets T3 does not report) go in models.local.json, which overrides top-level keys here. Codex credits come from T3 automatically. Candidates below minQuality are dropped. Effort (options) is set by the user: Claude starts at medium per Anthropic guidance; agents raise it one level on a retry before switching models."
   },
   "minQuality": 0.6,
+  "sentimentWeight": 0.67,
   "sentimentSources": ["@theo", "@davis7"],
   "windows": {
     "claudeAgent": { "claude-": ["seven_day"], "claude-fable": ["seven_day", "seven_day_fable"] },

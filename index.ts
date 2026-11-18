@@ -30,6 +30,8 @@ type Config = {
   windows?: Record<string, Record<string, string[]>>;
   // personal X sentiment, by tier then model id
   sentiment?: Partial<Record<Tier, Record<string, number>>>;
+  // share of sentiment in quality when both sentiment and a benchmark exist
+  sentimentWeight?: number;
   artificialAnalysisKey?: string;
   tiers: Record<Tier, Candidate[]>;
 };
@@ -168,7 +170,8 @@ export function pick(tier: Tier, exclude: string[] = [], now = Date.now()) {
       const b = benchFor(bench, c.model, c.options);
       const benchmark = b && benchQuality(tier, b, iiMax);
       const sentiment = cfg.sentiment?.[tier]?.[c.model] ?? c.quality;
-      const blended = benchmark != null && sentiment != null ? (benchmark + sentiment) / 2 : benchmark ?? sentiment;
+      const sw = cfg.sentimentWeight ?? 0.5;
+      const blended = benchmark != null && sentiment != null ? benchmark * (1 - sw) + sentiment * sw : benchmark ?? sentiment;
       if (blended == null || blended < (cfg.minQuality ?? 0)) return [];
       const ws = p.windows.filter((w) => !c.windows || c.windows.includes(w.id));
       const base = ws.length ? Math.min(...ws.map((w) => w.weight)) : 1;

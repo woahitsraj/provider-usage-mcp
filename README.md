@@ -16,7 +16,7 @@ Subscription-aware model router for [T3 Code](https://github.com/pingdotgg/t3cod
 
 The score is `quality × preference × weight`.
 
-- **quality** is the average of two parts. When a part is missing, the other part is used alone.
+- **quality** is a weighted average of two parts. `sentimentWeight` (default 0.67) is the share of sentiment, because hands-on reports catch problems that benchmarks miss. When a part is missing, the other part is used alone.
   - **Benchmark:** the [Artificial Analysis](https://artificialanalysis.ai) Intelligence Index for that model at its effort level, scaled so the best model is 1. The light tier also counts output speed and price.
   - **Sentiment:** your X sentiment from `models.local.json`, else the curated `quality` in `models.json`.
 - **preference** is your own multiplier by model id prefix.
