@@ -24,23 +24,23 @@ The score is `quality × preference × weight`.
 
 New models: a model that a provider in `windows` offers, that `models.json` does not list, and that Artificial Analysis says was released after `_meta.updatedAt` joins every tier at medium effort. To choose its tiers and effort, add it to `tiers` and update `_meta.updatedAt`.
 
-## Setup
+## Install
 
-```sh
-pnpm install
-```
+Tell your coding agent: "Install https://github.com/woahitsraj/provider-usage-mcp". The steps below are written for the agent.
 
-Register the MCP server (Node 24 or later runs TypeScript directly):
+1. Check that `node -v` is 24 or later. Node 24 runs the TypeScript files directly.
+2. Clone the repository to a lasting folder, for example `~/Projects/provider-usage-mcp`, and run `pnpm install` (or `npm install`) there.
+3. Register the MCP server for every agent CLI the user has. Use the absolute node path, because MCP clients do not load the shell's PATH:
+   - Claude Code: `claude mcp add -s user provider-usage -- "$(command -v node)" "$PWD/index.ts"`
+   - Codex: `codex mcp add provider-usage -- "$(command -v node)" "$PWD/index.ts"`
+4. On macOS, run `launchd/install.sh`. It sets the T3 Code default model every hour and logs to `~/Library/Logs/t3-model-router.log`.
+5. Ask the user for a free [Artificial Analysis key](https://artificialanalysis.ai/api-key-management-redirect) and any model preferences, then create `models.local.json` (see below). Skip this if they decline. The router works without it.
+6. If the user has Grok enabled in T3 Code, add a weekly T3 Code scheduled task in this project with the prompt `Follow prompts/weekly-sentiment.md.`
+7. Restart the agent CLI and check that `pick_model` with tier `standard` returns models.
 
-```sh
-claude mcp add provider-usage -- node "$PWD/index.ts"
-```
+To update later, run `git pull`.
 
-Install the hourly default model updater (macOS, uses the `node` on your PATH):
-
-```sh
-launchd/install.sh
-```
+## Personal settings
 
 Create `models.local.json`. All keys are optional, and each one overrides the same top-level key in `models.json`.
 
@@ -58,7 +58,7 @@ Create `models.local.json`. All keys are optional, and each one overrides the sa
 - `sentimentSources`: the X accounts the weekly job trusts most.
 - `resetCredits`: expiry dates of free limit resets that T3 Code does not report.
 
-If you have Grok in T3 Code, add a weekly T3 Code scheduled task in this project with the prompt `Follow prompts/weekly-sentiment.md.` It writes `sentiment` to your `models.local.json`.
+The weekly sentiment task writes `sentiment` to `models.local.json`.
 
 ## Environment
 
