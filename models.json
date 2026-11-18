@@ -1,0 +1,44 @@
+{
+  "_meta": {
+    "updatedAt": "2026-11-16",
+    "sources": [
+      "https://claude.dev/blog/which-claude-model-should-you-build-with/",
+      "Artificial Analysis Fable 5.2 vs Opus 5.5 (Intelligence Index v5.0.1)",
+      "https://x.com/theo/status/2119981096427503703",
+      "https://x.com/davis7/status/2119643771734528300",
+      "Artificial Analysis effort ladders for Sonnet 5.5, Haiku 5.5, GPT-6.1 Sol (2026-11)",
+      "https://x.com/theo/status/2122185041539469449",
+      "https://x.com/theo/status/2121030235248570537",
+      "https://deepmind.google/models/model-cards/gemini-4-carbon/",
+      "https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-4-hydrogen/"
+    ],
+    "notes": "quality = research sentiment per tier (0-1). Personal settings (preference = taste by model id prefix, resetCredits = expiry of free limit resets T3 does not report) go in models.local.json, which overrides top-level keys here. Codex credits come from T3 automatically. Candidates below minQuality are dropped. Effort (options) is set by the user: Claude starts at medium per Anthropic guidance; agents raise it one level on a retry before switching models."
+  },
+  "minQuality": 0.6,
+  "tiers": {
+    "deep": [
+      { "providerInstanceId": "claudeAgent", "model": "claude-fable-5-2", "options": { "effort": "medium" }, "quality": 1.0, "windows": ["seven_day", "seven_day_fable"] },
+      { "providerInstanceId": "claudeAgent", "model": "claude-opus-5-5", "options": { "effort": "medium" }, "quality": 0.9, "windows": ["seven_day"] },
+      { "providerInstanceId": "cursor", "model": "claude-opus-5-5", "options": { "effort": "medium" }, "quality": 0.9, "windows": ["apiPercentUsed", "totalPercentUsed"] },
+      { "providerInstanceId": "codex", "model": "gpt-6-astra", "options": { "reasoningEffort": "xhigh" }, "quality": 0.88 },
+      { "providerInstanceId": "codex", "model": "gpt-6.1-sol", "options": { "reasoningEffort": "xhigh" }, "quality": 0.84 },
+      { "providerInstanceId": "cursor", "model": "gemini-4-carbon", "options": { "reasoning_effort": "medium" }, "quality": 0.86, "windows": ["apiPercentUsed", "totalPercentUsed"] }
+    ],
+    "standard": [
+      { "providerInstanceId": "claudeAgent", "model": "claude-sonnet-5-5", "options": { "effort": "medium" }, "quality": 0.72, "windows": ["seven_day"] },
+      { "providerInstanceId": "claudeAgent", "model": "claude-opus-5-5", "options": { "effort": "medium" }, "quality": 0.95, "windows": ["seven_day"] },
+      { "providerInstanceId": "cursor", "model": "claude-opus-5-5", "options": { "effort": "medium" }, "quality": 0.95, "windows": ["apiPercentUsed", "totalPercentUsed"] },
+      { "providerInstanceId": "codex", "model": "gpt-6.1-sol", "options": { "reasoningEffort": "high" }, "quality": 0.85 },
+      { "providerInstanceId": "codex", "model": "gpt-6.1-terra", "options": { "reasoningEffort": "medium" }, "quality": 0.78 },
+      { "providerInstanceId": "cursor", "model": "gemini-4-carbon", "options": { "reasoning_effort": "medium" }, "quality": 0.88, "windows": ["apiPercentUsed", "totalPercentUsed"] }
+    ],
+    "light": [
+      { "providerInstanceId": "claudeAgent", "model": "claude-haiku-5-5", "options": { "effort": "medium" }, "quality": 0.94, "windows": ["seven_day"] },
+      { "providerInstanceId": "codex", "model": "gpt-6.1-terra", "options": { "reasoningEffort": "low" }, "quality": 0.86 },
+      { "providerInstanceId": "cursor", "model": "composer-2.5", "options": { "fastMode": true }, "quality": 0.74, "windows": ["autoPercentUsed", "totalPercentUsed"] },
+      { "providerInstanceId": "claudeAgent", "model": "claude-sonnet-5-5", "options": { "effort": "low" }, "quality": 0.62, "windows": ["seven_day"] },
+      { "providerInstanceId": "grok", "model": "grok-4.7-build-fast", "options": { "reasoningEffort": "medium" }, "quality": 0.55 },
+      { "providerInstanceId": "cursor", "model": "gemini-4-hydrogen", "options": { "reasoning_effort": "medium" }, "quality": 0.8, "windows": ["apiPercentUsed", "totalPercentUsed"] }
+    ]
+  }
+}
